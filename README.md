@@ -1,2 +1,2 @@
 # CAN
-Beaglebone can interface
+Beaglebone CAN interface
