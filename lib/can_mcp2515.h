@@ -17,7 +17,6 @@ private:
 	unsigned char   dta[MAX_CHAR_IN_MESSAGE];        // data
 	unsigned char   rtr;                             // rtr
 	unsigned char   filhit;
-	unsigned char   SPICS;
 
 	/*
 	*  mcp2515 driver function
@@ -74,8 +73,6 @@ private:
 	unsigned char sendMsg(int rtrBit);                                                 // send message
 
 public:
-
-	MCP_CAN(unsigned char _CS);
 	unsigned char begin(unsigned char speedset);                                      // init can
 	unsigned char init_Mask(unsigned char num, unsigned char ext, unsigned long ulData);       // init Masks
 	unsigned char init_Filt(unsigned char num, unsigned char ext, unsigned long ulData);       // init filters
