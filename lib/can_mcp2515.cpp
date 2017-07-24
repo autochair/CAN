@@ -9,6 +9,14 @@ extern "C" {
 const int MCP2515_SLAVENUM = 1;
 const int SPI_SPEED_HZ     = 16000000;
 
+#ifdef DEBUG_EN
+void printBuffer( char * buffer, int n ) {
+  printf("BUFFER: ");
+  for (int i=0;i<n;i++) printf("%#04X ", buffer[n]);
+  printf("\n");
+}
+#endif
+
 /*********************************************************************************************************
  ** Function name:           mcp2515_reset
  ** Descriptions:            reset the device
@@ -27,7 +35,17 @@ unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 {
   char ret[1] = {0};
   char data[2] = { MCP_READ, address };
-  rc_spi_transfer( data, 2, ret, MCP2515_SLAVENUM );
+  //rc_spi_transfer( data, 2, ret, MCP2515_SLAVENUM );
+  int bytes = 0;
+  bytes = rc_spi_send_bytes( data, 2, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+#endif
+  bytes = rc_spi_read_bytes( ret, 1, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+  printBuffer( ret, 1 );
+#endif
   return (unsigned char)ret[0];
 }
 
@@ -39,7 +57,17 @@ void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char v
 {
   // mcp2515 has auto-increment of address-pointer
   char data[2] = { MCP_READ, address };
-  rc_spi_transfer( data , 2, (char *)values, MCP2515_SLAVENUM );
+  //rc_spi_transfer( data , 2, (char *)values, MCP2515_SLAVENUM );
+  int bytes = 0;
+  bytes = rc_spi_send_bytes( data, 2, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+#endif
+  bytes = rc_spi_read_bytes( (char *)values, n, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+  printBuffer( (char *)values, n );
+#endif
 }
 
 /*********************************************************************************************************
@@ -81,7 +109,17 @@ unsigned char MCP_CAN::mcp2515_readStatus(void)
 {
   char i[1] = {0};
   char data[1] = { MCP_READ_STATUS };
-  rc_spi_transfer( data, 1, i, MCP2515_SLAVENUM );
+  //rc_spi_transfer( data, 1, i, MCP2515_SLAVENUM );
+  int bytes = 0;
+  bytes = rc_spi_send_bytes( data, 1, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+#endif
+  bytes = rc_spi_read_bytes( i, 1, MCP2515_SLAVENUM );
+#ifdef DEBUG_EN
+  printf("%s: bytes = %d\n", __PRETTY_FUNCTION__, bytes);
+  printBuffer( i, 1 );
+#endif
   return (unsigned char)i[0];
 }
 
