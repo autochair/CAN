@@ -2,10 +2,8 @@
 
 #include "can_mcp2515.h"
 
-#define spi_readwrite   SPI.transfer
+#define spi_readwrite    SPI.transfer
 #define spi_read()      spi_readwrite(0x00)
-#define SPI_BEGIN()     SPI.beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0))
-#define SPI_END()       SPI.endTransaction()
 
 /*********************************************************************************************************
 ** Function name:           mcp2515_reset
@@ -13,15 +11,9 @@
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_reset(void)
 {
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
 	MCP2515_SELECT();
 	spi_readwrite(MCP_RESET);
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
 	delay(10);
 }
 
@@ -33,17 +25,11 @@ unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 {
 	unsigned char ret;
 
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
 	MCP2515_SELECT();
 	spi_readwrite(MCP_READ);
 	spi_readwrite(address);
 	ret = spi_read();
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
 
 	return ret;
 }
@@ -55,9 +41,7 @@ unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char values[], const unsigned char n)
 {
 	unsigned char i;
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
+
 	MCP2515_SELECT();
 	spi_readwrite(MCP_READ);
 	spi_readwrite(address);
@@ -67,9 +51,7 @@ void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char v
 		values[i] = spi_read();
 	}
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
+
 }
 
 /*********************************************************************************************************
@@ -78,17 +60,13 @@ void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char v
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_setRegister(const unsigned char address, const unsigned char value)
 {
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
+
 	MCP2515_SELECT();
 	spi_readwrite(MCP_WRITE);
 	spi_readwrite(address);
 	spi_readwrite(value);
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
+
 }
 
 /*********************************************************************************************************
@@ -98,9 +76,7 @@ void MCP_CAN::mcp2515_setRegister(const unsigned char address, const unsigned ch
 void MCP_CAN::mcp2515_setRegisterS(const unsigned char address, const unsigned char values[], const unsigned char n)
 {
 	unsigned char i;
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
+
 	MCP2515_SELECT();
 	spi_readwrite(MCP_WRITE);
 	spi_readwrite(address);
@@ -110,9 +86,7 @@ void MCP_CAN::mcp2515_setRegisterS(const unsigned char address, const unsigned c
 		spi_readwrite(values[i]);
 	}
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
+
 }
 
 /*********************************************************************************************************
@@ -121,18 +95,14 @@ void MCP_CAN::mcp2515_setRegisterS(const unsigned char address, const unsigned c
 *********************************************************************************************************/
 void MCP_CAN::mcp2515_modifyRegister(const unsigned char address, const unsigned char mask, const unsigned char data)
 {
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
+
 	MCP2515_SELECT();
 	spi_readwrite(MCP_BITMOD);
 	spi_readwrite(address);
 	spi_readwrite(mask);
 	spi_readwrite(data);
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
+
 }
 
 /*********************************************************************************************************
@@ -142,16 +112,12 @@ void MCP_CAN::mcp2515_modifyRegister(const unsigned char address, const unsigned
 unsigned char MCP_CAN::mcp2515_readStatus(void)
 {
 	unsigned char i;
-#ifdef SPI_HAS_TRANSACTION
-	SPI_BEGIN();
-#endif
+
 	MCP2515_SELECT();
 	spi_readwrite(MCP_READ_STATUS);
 	i = spi_read();
 	MCP2515_UNSELECT();
-#ifdef SPI_HAS_TRANSACTION
-	SPI_END();
-#endif
+
 
 	return i;
 }
