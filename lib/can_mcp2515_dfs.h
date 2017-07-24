@@ -4,10 +4,6 @@
 
 #include <inttypes.h>
 
-
-// if print debug information
-#define DEBUG_EN        0
-
 // Begin mt
 
 #define TIMEOUTVALUE    50

@@ -25,10 +25,10 @@ void MCP_CAN::mcp2515_reset(void)
  *********************************************************************************************************/
 unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 {
-  unsigned char ret;
+  char ret[1] = {0};
   char data[2] = { MCP_READ, address };
-  rc_spi_transfer( data, 2, (char *)&ret, MCP2515_SLAVENUM );
-  return ret;
+  rc_spi_transfer( data, 2, ret, MCP2515_SLAVENUM );
+  return (unsigned char)ret[0];
 }
 
 /*********************************************************************************************************
@@ -79,10 +79,10 @@ void MCP_CAN::mcp2515_modifyRegister(const unsigned char address, const unsigned
  *********************************************************************************************************/
 unsigned char MCP_CAN::mcp2515_readStatus(void)
 {
-  unsigned char i;
+  char i[1] = {0};
   char data[1] = { MCP_READ_STATUS };
-  rc_spi_transfer( data, 1, (char *)&i, MCP2515_SLAVENUM );
-  return i;
+  rc_spi_transfer( data, 1, i, MCP2515_SLAVENUM );
+  return (unsigned char)i[0];
 }
 
 /*********************************************************************************************************
