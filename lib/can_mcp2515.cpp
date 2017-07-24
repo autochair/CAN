@@ -1,6 +1,10 @@
-
+extern "C" {
+#include "roboticscape.h"
+}
 
 #include "can_mcp2515.h"
+
+#include <algorithm>
 
 const int MCP2515_SLAVENUM = 1;
 const int SPI_SPEED_HZ     = 16000000;
@@ -11,7 +15,8 @@ const int SPI_SPEED_HZ     = 16000000;
  *********************************************************************************************************/
 void MCP_CAN::mcp2515_reset(void)
 {
-  spi_readwrite(MCP_RESET);
+  char data[1] = { MCP_RESET };
+  rc_spi_send_bytes( data, 1, MCP2515_SLAVENUM );
 }
 
 /*********************************************************************************************************
@@ -21,7 +26,8 @@ void MCP_CAN::mcp2515_reset(void)
 unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 {
   unsigned char ret;
-  rc_spi_transfer( { MCP_READ, address }, 2, &ret, MCP2515_SLAVENUM );
+  char data[2] = { MCP_READ, address };
+  rc_spi_transfer( data, 2, (char *)&ret, MCP2515_SLAVENUM );
   return ret;
 }
 
@@ -32,7 +38,8 @@ unsigned char MCP_CAN::mcp2515_readRegister(const unsigned char address)
 void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char values[], const unsigned char n)
 {
   // mcp2515 has auto-increment of address-pointer
-  rc_spi_transfer( { MCP_READ, address }, 2, values, MCP2515_SLAVENUM );
+  char data[2] = { MCP_READ, address };
+  rc_spi_transfer( data , 2, (char *)values, MCP2515_SLAVENUM );
 }
 
 /*********************************************************************************************************
@@ -41,7 +48,8 @@ void MCP_CAN::mcp2515_readRegisterS(const unsigned char address, unsigned char v
  *********************************************************************************************************/
 void MCP_CAN::mcp2515_setRegister(const unsigned char address, const unsigned char value)
 {
-  rc_spi_send_bytes( { MCP_WRITE, address, value }, 3, MCP2515_SLAVENUM );
+  char data[3] = { MCP_WRITE, address, value };
+  rc_spi_send_bytes( data, 3, MCP2515_SLAVENUM );
 }
 
 /*********************************************************************************************************
@@ -50,8 +58,9 @@ void MCP_CAN::mcp2515_setRegister(const unsigned char address, const unsigned ch
  *********************************************************************************************************/
 void MCP_CAN::mcp2515_setRegisterS(const unsigned char address, const unsigned char values[], const unsigned char n)
 {
-  rc_spi_send_bytes( { MCP_WRITE, address }, 2, MCP2515_SLAVENUM );
-  rc_spi_send_bytes( values, n, MCP2515_SLAVENUM );
+  char data[2] = { MCP_WRITE, address };
+  rc_spi_send_bytes( data, 2, MCP2515_SLAVENUM );
+  rc_spi_send_bytes( (char *)values, n, MCP2515_SLAVENUM );
 }
 
 /*********************************************************************************************************
@@ -60,7 +69,8 @@ void MCP_CAN::mcp2515_setRegisterS(const unsigned char address, const unsigned c
  *********************************************************************************************************/
 void MCP_CAN::mcp2515_modifyRegister(const unsigned char address, const unsigned char mask, const unsigned char data)
 {
-  rc_spi_send_bytes( { MCP_BITMOD, address, mask, data }, 4, MCP2515_SLAVENUM );
+  char _data[4] = { MCP_BITMOD, address, mask, data };
+  rc_spi_send_bytes( _data, 4, MCP2515_SLAVENUM );
 }
 
 /*********************************************************************************************************
@@ -70,7 +80,8 @@ void MCP_CAN::mcp2515_modifyRegister(const unsigned char address, const unsigned
 unsigned char MCP_CAN::mcp2515_readStatus(void)
 {
   unsigned char i;
-  rc_spi_transfer( { MCP_READ_STATUS }, 1, &i, MCP2515_SLAVENUM );
+  char data[1] = { MCP_READ_STATUS };
+  rc_spi_transfer( data, 1, (char *)&i, MCP2515_SLAVENUM );
   return i;
 }
 
@@ -270,14 +281,14 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
       printf("Enter setting mode fall\n");
 #else
-      delay(10);
+      //delay(10);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("Enter setting mode success \n");
 #else
-  delay(10);
+  //delay(10);
 #endif
 
   // set boadrate
@@ -286,14 +297,14 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
       printf("set rate fall!!\n");
 #else
-      delay(10);
+      //delay(10);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("set rate success!!\n");
 #else
-  delay(10);
+  //delay(10);
 #endif
 
   if (res == MCP2515_OK) {
@@ -326,7 +337,7 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
 	printf("Enter Normal Mode Fall!!\n");
 #else
-	delay(10);
+	//delay(10);
 #endif
 	return res;
       }
@@ -335,7 +346,7 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
     printf("Enter Normal Mode Success!!\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
 
   }
@@ -493,14 +504,14 @@ unsigned char MCP_CAN::init_Mask(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
   printf("Begin to set Mask!!\n");
 #else
-  delay(10);
+  //delay(10);
 #endif
   res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
   if (res > 0) {
 #if DEBUG_EN
     printf("Enter setting mode fall\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
     return res;
   }
@@ -519,14 +530,14 @@ unsigned char MCP_CAN::init_Mask(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
     printf("Enter normal mode fall\n");
 #else
-    delay(10);
+    //delay(10);
 #endif
     return res;
   }
 #if DEBUG_EN
   printf("set Mask success!!\n");
 #else
-  delay(10);
+  //delay(10);
 #endif
   return res;
 }
@@ -541,7 +552,7 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
   printf("Begin to set Filter!!\n");
 #else
-  delay(10);
+  //delay(10);
 #endif
   res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
   if (res > 0)
@@ -549,7 +560,7 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
       printf("Enter setting mode fall\n");
 #else
-      delay(10);
+      //delay(10);
 #endif
       return res;
     }
@@ -590,14 +601,14 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
       printf("Enter normal mode fall\nSet filter fail!!\n");
 #else
-      delay(10);
+      //delay(10);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("set Filter success!!\n");
 #else
-  delay(10);
+  //delay(10);
 #endif
 
   return res;
@@ -611,7 +622,7 @@ unsigned char MCP_CAN::setMsg(unsigned long id, unsigned char ext, unsigned char
 {
   ext_flg = ext;
   can_id = id;
-  dta_len = min(len, MAX_CHAR_IN_MESSAGE);
+  dta_len = std::min(len, (unsigned char)MAX_CHAR_IN_MESSAGE);
   rtr = rtr;
   for (int i = 0; i<dta_len; i++)
     {
