@@ -5,9 +5,6 @@
 const int MCP2515_SLAVENUM = 1;
 const int SPI_SPEED_HZ     = 16000000;
 
-#define spi_readwrite    SPI.transfer
-#define spi_read()      spi_readwrite(0x00)
-
 /*********************************************************************************************************
  ** Function name:           mcp2515_reset
  ** Descriptions:            reset the device
