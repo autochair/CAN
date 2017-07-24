@@ -2,6 +2,8 @@ extern "C" {
 #include "roboticscape.h"
 }
 
+#include <unistd.h>
+
 #include "can_mcp2515.h"
 
 #include <algorithm>
@@ -25,6 +27,8 @@ void MCP_CAN::mcp2515_reset(void)
 {
   char data[1] = { MCP_RESET };
   rc_spi_send_bytes( data, 1, MCP2515_SLAVENUM );
+
+  usleep(10000);
 }
 
 /*********************************************************************************************************
@@ -319,14 +323,14 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
       printf("Enter setting mode fall\n");
 #else
-      //delay(10);
+      usleep(10000);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("Enter setting mode success \n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
 
   // set boadrate
@@ -335,14 +339,14 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
       printf("set rate fall!!\n");
 #else
-      //delay(10);
+      usleep(10000);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("set rate success!!\n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
 
   if (res == MCP2515_OK) {
@@ -375,7 +379,7 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
 	printf("Enter Normal Mode Fall!!\n");
 #else
-	//delay(10);
+	usleep(10000);
 #endif
 	return res;
       }
@@ -384,7 +388,7 @@ unsigned char MCP_CAN::mcp2515_init(const unsigned char canSpeed)
 #if DEBUG_EN
     printf("Enter Normal Mode Success!!\n");
 #else
-    //delay(10);
+    usleep(10000);
 #endif
 
   }
@@ -542,14 +546,14 @@ unsigned char MCP_CAN::init_Mask(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
   printf("Begin to set Mask!!\n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
   res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
   if (res > 0) {
 #if DEBUG_EN
     printf("Enter setting mode fall\n");
 #else
-    //delay(10);
+    usleep(10000);
 #endif
     return res;
   }
@@ -568,14 +572,14 @@ unsigned char MCP_CAN::init_Mask(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
     printf("Enter normal mode fall\n");
 #else
-    //delay(10);
+    usleep(10000);
 #endif
     return res;
   }
 #if DEBUG_EN
   printf("set Mask success!!\n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
   return res;
 }
@@ -590,7 +594,7 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
   printf("Begin to set Filter!!\n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
   res = mcp2515_setCANCTRL_Mode(MODE_CONFIG);
   if (res > 0)
@@ -598,7 +602,7 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
       printf("Enter setting mode fall\n");
 #else
-      //delay(10);
+      usleep(10000);
 #endif
       return res;
     }
@@ -639,14 +643,14 @@ unsigned char MCP_CAN::init_Filt(unsigned char num, unsigned char ext, unsigned 
 #if DEBUG_EN
       printf("Enter normal mode fall\nSet filter fail!!\n");
 #else
-      //delay(10);
+      usleep(10000);
 #endif
       return res;
     }
 #if DEBUG_EN
   printf("set Filter success!!\n");
 #else
-  //delay(10);
+  usleep(10000);
 #endif
 
   return res;
