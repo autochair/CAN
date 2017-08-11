@@ -82,7 +82,7 @@ int parse_canframe(char *cs, struct can_frame *cf);
  * can_id can have 3 (standard frame format) or 8 (extended frame format)
  *        hexadecimal chars
  *
- * data has 0 to 8 hex-values that can (optionally) be seperated by '.'
+ * data has 0 to 8 hex-values that can (optionally) be separated by '.'
  *
  * Examples:
  *
@@ -110,7 +110,7 @@ void fprint_canframe(FILE *stream , struct can_frame *cf, char *eol, int sep);
 void sprint_canframe(char *buf , struct can_frame *cf, int sep);
 /*
  * Creates a CAN frame hexadecimal output in compact format.
- * The CAN data[] is seperated by '.' when sep != 0.
+ * The CAN data[] is separated by '.' when sep != 0.
  *
  * 12345678#112233 -> exended CAN-Id = 0x12345678, dlc = 3, data, sep = 0
  * 12345678#R -> exended CAN-Id = 0x12345678, RTR

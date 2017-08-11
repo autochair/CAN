@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Try: <can_id>#{R|data}\n");
 		fprintf(stderr, "can_id can have 3 (SFF) or 8 (EFF) hex chars\n");
 		fprintf(stderr, "data has 0 to 8 hex-values that can (optionally)");
-		fprintf(stderr, " be seperated by '.'\n\n");
+		fprintf(stderr, " be separated by '.'\n\n");
 		fprintf(stderr, "e.g. 5A1#11.2233.44556677.88 / 123#DEADBEEF / ");
 		fprintf(stderr, "5AA# /\n     1F334455#1122334455667788 / 123#R ");
 		fprintf(stderr, "for remote transmission request.\n\n");
