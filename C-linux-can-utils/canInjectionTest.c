@@ -47,7 +47,7 @@
 
 /* 20-05-15 Modified to sent a message out in code rather then from parameter.
 
-	www.skpang.co.uk
+   www.skpang.co.uk
 */
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,96 +58,107 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include <errno.h>
+
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
 #include "lib.h"
 
-int initCanSocket(char iname[] ){
-    int s; /* can raw socket */
-	struct sockaddr_can addr;
-	struct can_frame frame;
-	struct ifreq ifr;
-
-    
-    /* open socket */
-	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
-		perror("socket");
-		return -1;
-	}
-
-	addr.can_family = AF_CAN;
-
-	strcpy(ifr.ifr_name, "can1");
-	if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
-		perror("SIOCGIFINDEX");
-		return -1;
-	}
-	addr.can_ifindex = ifr.ifr_ifindex;
-
-	/* disable default receive filter on this RAW socket */
-	/* This is obsolete as we do not read from the socket at all, but for */
-	/* this reason we can remove the receive list in the Kernel to save a */
-	/* little (really a very little!) CPU usage.                          */
-	setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
-
-	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("bind");
-		return -1;
-	}
-
-}
-
-
-
-
 int main(int argc, char **argv)
 {
-	int s; /* can raw socket */
-    int nbytes;
-		
-	fprintf(stderr,"CAN testing\n");
-	
-	if ((s = initCanSocket("can1")) < 0)
-    {
-        perror("canInit");
-        return 1;
+  int s; /* can raw socket */
+  int nbytes;
+  struct sockaddr_can addr;
+  struct can_frame frame;
+  struct ifreq ifr;
+
+    
+  /* open socket */
+  if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
+    perror("socket");
+    return 1;
+  }
+
+  addr.can_family = AF_CAN;
+
+  strcpy(ifr.ifr_name, "can1");
+  if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
+    perror("SIOCGIFINDEX");
+    return 1;
+  }
+  addr.can_ifindex = ifr.ifr_ifindex;
+
+  /* disable default receive filter on this RAW socket */
+  /* This is obsolete as we do not read from the socket at all, but for */
+  /* this reason we can remove the receive list in the Kernel to save a */
+  /* little (really a very little!) CPU usage.                          */
+  setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
+
+  if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    perror("bind");
+    return 1;
+  }
+
+  struct timeval tv;
+  int retval =0;
+  tv.tv_sec = 1;
+  tv.tv_usec = 0;
+  if ( (retval=setsockopt(s, SOL_SOCKET, SO_RCVTIMEO,&tv,sizeof(tv))) < 0) {
+    perror("Timeout");
+    close(s);
+    return 1;
+  }
+
+
+  
+  fprintf(stderr,"CAN testing\n");
+
+
+  // make frame to send to can
+  unsigned char buff[] = "7DF#0201050000000000";
+
+  if (parse_canframe(buff, &frame)){
+    fprintf(stderr, "\nWrong CAN-frame format!\n\n");
+    fprintf(stderr, "Try: <can_id>#{R|data}\n");
+    fprintf(stderr, "can_id can have 3 (SFF) or 8 (EFF) hex chars\n");
+    fprintf(stderr, "data has 0 to 8 hex-values that can (optionally)");
+    fprintf(stderr, " be separated by '.'\n\n");
+    fprintf(stderr, "e.g. 5A1#11.2233.44556677.88 / 123#DEADBEEF / ");
+    fprintf(stderr, "5AA# /\n     1F334455#1122334455667788 / 123#R ");
+    fprintf(stderr, "for remote transmission request.\n\n");
+    return 1;
+  }
+  
+  //while(1)
+  {
+      nbytes = write(s, &frame, sizeof(frame));
     }
 
-    fprintf(stdout, "Waiting for joystick ID");
-    //get joystick id
-    struct can_frame recFrame;
+  
+  
+  fprintf(stderr, "Waiting for joystick ID \n");
+  //get joystick id
+  struct can_frame recFrame;
 
-    bool found = false;
-    while(!found)
+  int found = 0;
+  while(found == 0)
     {
-        nbytes = read(s, &recFrame, sizeof(struct can_frame));
-        
-        if(!(recFrame.can_id & 0x80000000) //mask to see if it is not an extended frame
+      fprintf(stderr, "In Loop\n");
+      nbytes = read(s, &recFrame, sizeof(struct can_frame));
+      fprintf(stderr, "Read frame\n");
+      fprintf(stderr, "%d\n", errno);
+      fprint_canframe(stderr, &recFrame, "\n", 0);
+      if((recFrame.can_id & 0x8000)) //mask to see if it is not an extended frame
         {
-            canid_t joyID = recFrame.can_id;
-            found = true;
-            fprintf(stdout, "Found!");
+	  canid_t joyID = recFrame.can_id;
+	  found = 1;
+	  fprintf(stderr, "Found!\n");
         }
     }
+  
+  	
 
-    // make frame to send to can
-    unsigned char buff[] = "7DF#0201050000000000";
-
-    if (parse_canframe(buff, &frame)){
-		fprintf(stderr, "\nWrong CAN-frame format!\n\n");
-		fprintf(stderr, "Try: <can_id>#{R|data}\n");
-		fprintf(stderr, "can_id can have 3 (SFF) or 8 (EFF) hex chars\n");
-		fprintf(stderr, "data has 0 to 8 hex-values that can (optionally)");
-		fprintf(stderr, " be separated by '.'\n\n");
-		fprintf(stderr, "e.g. 5A1#11.2233.44556677.88 / 123#DEADBEEF / ");
-		fprintf(stderr, "5AA# /\n     1F334455#1122334455667788 / 123#R ");
-		fprintf(stderr, "for remote transmission request.\n\n");
-		return 1;
-	}
-
-	
-
-	close(s);
-	return 0;
+  close(s);
+  return 0;
 }
