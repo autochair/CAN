@@ -63,38 +63,17 @@
 
 #include "lib.h"
 
-int main(int argc, char **argv)
-{
-	int s; /* can raw socket */ 
-	int nbytes;
+int initCanSocket(char iname[] ){
+    int s; /* can raw socket */
 	struct sockaddr_can addr;
 	struct can_frame frame;
 	struct ifreq ifr;
 
-	int i;
-		
-	/* CAN message to be sent out */
-	unsigned char buff[] = "7DF#0201050000000000";
-
-	fprintf(stderr,"CAN testing\n");
-	
-	/* parse CAN frame */
-	if (parse_canframe(buff, &frame)){
-		fprintf(stderr, "\nWrong CAN-frame format!\n\n");
-		fprintf(stderr, "Try: <can_id>#{R|data}\n");
-		fprintf(stderr, "can_id can have 3 (SFF) or 8 (EFF) hex chars\n");
-		fprintf(stderr, "data has 0 to 8 hex-values that can (optionally)");
-		fprintf(stderr, " be separated by '.'\n\n");
-		fprintf(stderr, "e.g. 5A1#11.2233.44556677.88 / 123#DEADBEEF / ");
-		fprintf(stderr, "5AA# /\n     1F334455#1122334455667788 / 123#R ");
-		fprintf(stderr, "for remote transmission request.\n\n");
-		return 1;
-	}
-
-	/* open socket */
+    
+    /* open socket */
 	if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
 		perror("socket");
-		return 1;
+		return -1;
 	}
 
 	addr.can_family = AF_CAN;
@@ -102,7 +81,7 @@ int main(int argc, char **argv)
 	strcpy(ifr.ifr_name, "can1");
 	if (ioctl(s, SIOCGIFINDEX, &ifr) < 0) {
 		perror("SIOCGIFINDEX");
-		return 1;
+		return -1;
 	}
 	addr.can_ifindex = ifr.ifr_ifindex;
 
@@ -114,21 +93,60 @@ int main(int argc, char **argv)
 
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		perror("bind");
+		return -1;
+	}
+
+}
+
+
+
+
+int main(int argc, char **argv)
+{
+	int s; /* can raw socket */
+    int nbytes;
+		
+	fprintf(stderr,"CAN testing\n");
+	
+	if ((s = initCanSocket("can1")) < 0)
+    {
+        perror("canInit");
+        return 1;
+    }
+
+    fprintf(stdout, "Waiting for joystick ID");
+    //get joystick id
+    struct can_frame recFrame;
+
+    bool found = false;
+    while(!found)
+    {
+        nbytes = read(s, &recFrame, sizeof(struct can_frame));
+        
+        if(!(recFrame.can_id & 0x80000000) //mask to see if it is not an extended frame
+        {
+            canid_t joyID = recFrame.can_id;
+            found = true;
+            fprintf(stdout, "Found!");
+        }
+    }
+
+    // make frame to send to can
+    unsigned char buff[] = "7DF#0201050000000000";
+
+    if (parse_canframe(buff, &frame)){
+		fprintf(stderr, "\nWrong CAN-frame format!\n\n");
+		fprintf(stderr, "Try: <can_id>#{R|data}\n");
+		fprintf(stderr, "can_id can have 3 (SFF) or 8 (EFF) hex chars\n");
+		fprintf(stderr, "data has 0 to 8 hex-values that can (optionally)");
+		fprintf(stderr, " be separated by '.'\n\n");
+		fprintf(stderr, "e.g. 5A1#11.2233.44556677.88 / 123#DEADBEEF / ");
+		fprintf(stderr, "5AA# /\n     1F334455#1122334455667788 / 123#R ");
+		fprintf(stderr, "for remote transmission request.\n\n");
 		return 1;
 	}
 
-	/* send frame */
-	for(i=0;i<100;i++)
-	{
-		if ((nbytes = write(s, &frame, sizeof(frame))) != sizeof(frame)) {
-			perror("write");
-			return 1;
-		}
-		
-		fprintf(stderr, "%d \n", i);
-
-		usleep(10000); /* Delay before next loop */
-	}
+	
 
 	close(s);
 	return 0;
