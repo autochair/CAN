@@ -73,7 +73,7 @@ int main(int argc, char **argv)
   struct can_frame frame;
   struct ifreq ifr;
 
-  struct can_filter *rfilter;
+  struct can_filter rfilter;
   can_err_mask_t err_mask;
 
     
@@ -92,11 +92,13 @@ int main(int argc, char **argv)
   }
   addr.can_ifindex = ifr.ifr_ifindex;
 
-  /* disable default receive filter on this RAW socket */
-  /* This is obsolete as we do not read from the socket at all, but for */
-  /* this reason we can remove the receive list in the Kernel to save a */
-  /* little (really a very little!) CPU usage.                          */
-  setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
+  
+  rfilter.can_id = 0x02000000;
+  rfilter.can_mask = 0x1FF00000; 
+    
+
+  setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, &rfilter, sizeof(rfilter));
+  
 
   if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
     perror("bind");
@@ -117,7 +119,7 @@ int main(int argc, char **argv)
   
   fprintf(stderr,"CAN testing\n");
 
-
+  /*
   // make frame to send to can
   unsigned char buff[] = "7DF#0201050000000000";
 
@@ -137,30 +139,35 @@ int main(int argc, char **argv)
   {
       nbytes = write(s, &frame, sizeof(frame));
     }
-
+  */
   
   
   fprintf(stderr, "Waiting for joystick ID \n");
   //get joystick id
   struct can_frame recFrame;
+  nbytes = read(s, &recFrame, sizeof(struct can_frame));
+  fprint_canframe(stderr, &recFrame, "\n", 0);
+  canid_t joyID = recFrame.can_id;
+  fprintf(stderr,"Found!\n");
+  fprintf(stderr,"Entering loop to inject a new frame on reception of joystick frame.\n");
 
-  int found = 0;
-  while(found == 0)
+  while(1)
     {
-      fprintf(stderr, "In Loop\n");
       nbytes = read(s, &recFrame, sizeof(struct can_frame));
-      fprintf(stderr, "Read frame\n");
-      fprintf(stderr, "%d\n", errno);
-      fprint_canframe(stderr, &recFrame, "\n", 0);
-      if((recFrame.can_id & 0x8000)) //mask to see if it is not an extended frame
-        {
-	  canid_t joyID = recFrame.can_id;
-	  found = 1;
-	  fprintf(stderr, "Found!\n");
-        }
-    }
-  
-  	
+      /*
+      fprintf(stderr, "%d\n", recFrame.can_dlc);
+      int i;
+      for(i = 0; i < sizeof(recFrame.data); i++)
+	{
+	  fprintf(stderr, "%d", recFrame.data[i]);
+	}
+      fprintf(stderr, "\n");
+      */
+      recFrame.data[1] = 50;
+      
+      nbytes = write(s, &recFrame, sizeof(recFrame));
+      
+    }   	
 
   close(s);
   return 0;
