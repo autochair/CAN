@@ -73,6 +73,9 @@ int main(int argc, char **argv)
   struct can_frame frame;
   struct ifreq ifr;
 
+  struct can_filter *rfilter;
+  can_err_mask_t err_mask;
+
     
   /* open socket */
   if ((s = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0) {
