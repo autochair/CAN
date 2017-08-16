@@ -163,7 +163,7 @@ int main(int argc, char **argv)
 	}
       fprintf(stderr, "\n");
       */
-      recFrame.data[1] = 50;
+      recFrame.data[1] = -100;
       
       nbytes = write(s, &recFrame, sizeof(recFrame));
       
